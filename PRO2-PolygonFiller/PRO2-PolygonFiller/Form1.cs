@@ -22,6 +22,10 @@ namespace PRO2_PolygonFiller
         public ModelVisualizer visualizer;
         public string s = "";
 
+        private bool rotateLightsource = true;
+        private bool useColorInterpolation = true;
+        //private bool useTexture = false;
+
         public Form1()
         {
             InitializeComponent();
@@ -38,33 +42,19 @@ namespace PRO2_PolygonFiller
             //Mesh mesh = MeshCreator.CreateMeshFromObj("C:\\Studia sem5\\Grafika Komputerowa 1\\PRO2\\Polygon-Filler-main\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\Pyramid.obj");
             //Mesh mesh = MeshCreator.CreateMeshFromObj("C:\\Studia sem5\\Grafika Komputerowa 1\\PRO2\\Polygon-Filler-main\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\Rhombus.obj");
 
-            if (mesh == null) Form1.ActiveForm.Close();
-
-            for (int i = 0; i < mesh.vertices.Count; i++)
-            {
-                //s += "V." + i + " " + mesh.vertices[i].x.ToString() + ' ' + mesh.vertices[i].y.ToString() + ' ' + mesh.vertices[i].z.ToString() + '\n';
-                //s += "V." + i + " " + mesh.normalVectors[i].x.ToString() + ' ' + mesh.normalVectors[i].y.ToString() + ' ' + mesh.normalVectors[i].z.ToString() + '\n';
-            }
+            if (mesh == null) ActiveForm.Close();
 
             visualizer = new ModelVisualizer(mesh);
             visualizer.FitModelOnCanvas(canvas);
-            //for (int i = 0; i < mesh.vertices.Count; i++)
-            //{
-            //    s += "V." + i + " " + mesh.vertices[i].cast.X.ToString() + ' ' + mesh.vertices[i].cast.Y.ToString() + '\n';
-            //}
 
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+
+            visualizer.FillFrame(canvas, bitmap);
+
+            buttonShowColor.BackColor = visualizer.model.color.ToColor();
             //visualizer.DrawFrame(Graphics.FromImage(bitmap), bitmap);
             canvas.Invalidate();
             timerAnimation.Start();
 
-            //s += visualizer.scale + '\n';
-            //s += "Casts:\n";
-            //for (int i = 0; i < mesh.vertices.Count; i++)
-            //{
-            //    s += "V." + i + " " + mesh.vertices[i].cast.X.ToString() + ' ' + mesh.vertices[i].cast.Y.ToString() + '\n';
-            //}
-            //label1.Text = s + "\nNill";
         }
 
         private void canvas_Paint(object sender, PaintEventArgs e)
@@ -75,7 +65,8 @@ namespace PRO2_PolygonFiller
         private void Form1_Resize(object sender, EventArgs e)
         {
             visualizer.FitModelOnCanvas(canvas);
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+            if(visualizer.useTexture == true) visualizer.FitImageOnCanvas(visualizer.texture_originalsize);
+            visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
         }
 
@@ -83,39 +74,91 @@ namespace PRO2_PolygonFiller
         {
             //Form1.ActiveForm.Text = $"Ticks: {++ticks}, angle: {visualizer.angle}";
             if (Form1.ActiveForm == null) return;
-            //visualizer.angle += angleStep * timerAnimation.Interval / 1000.0f;
-            //if (visualizer.angle > Math.PI / 4) visualizer.angle = 0;
-            visualizer.RotateLight();
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
-            canvas.Invalidate();
+
+            if(rotateLightsource == true)
+            {
+                visualizer.RotateLight();
+                visualizer.FillFrame(canvas, bitmap);
+                canvas.Invalidate();
+            }
         }
 
         private void sliderDiffuse_ValueChanged(object sender, EventArgs e)
         {
             visualizer.model.kd = (float)sliderDiffuse.Value / 100.0f;
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+            visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
         }
 
         private void sliderSpecular_ValueChanged(object sender, EventArgs e)
         {
             visualizer.model.ks = (float)sliderSpecular.Value / 100.0f;
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+            visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
         }
 
         private void sliderShininess_ValueChanged(object sender, EventArgs e)
         {
             visualizer.model.m = sliderShininess.Value;
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+            visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
         }
 
         private void sliderLightHeight_ValueChanged(object sender, EventArgs e)
         {
             visualizer.light.SetHeight((float)sliderLightHeight.Value / 100.0f);
-            visualizer.FillFrame_InterpolateColors(Graphics.FromImage(bitmap), bitmap);
+            visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
+        }
+
+        private void radioButton_LightSpiral_CheckedChanged(object sender, EventArgs e)
+        {
+            rotateLightsource = !rotateLightsource;
+        }
+
+        private void radioButtonInterpolationColor_CheckedChanged(object sender, EventArgs e)
+        {
+            useColorInterpolation = !useColorInterpolation;
+            visualizer.interpolateColor = useColorInterpolation;
+        }
+
+        private void buttonSetColor_Click(object sender, EventArgs e)
+        {
+            ColorDialog colorDialog = new ColorDialog();
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                if (visualizer.useTexture == true)
+                {
+                    visualizer.useTexture = false;
+                    visualizer.texture = null;
+                }
+
+                buttonShowColor.BackColor = colorDialog.Color;
+                visualizer.model.color = new colorvalue(colorDialog.Color);
+            }
+        }
+
+        private void buttonTexture_MouseClick(object sender, MouseEventArgs e)
+        {
+            //useTexture = true;
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF";
+            if(fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                buttonShowColor.BackColor = SystemColors.Control;
+
+                Bitmap imageBitmap = new Bitmap(fileDialog.FileName);
+                visualizer.texture_originalsize = imageBitmap;
+                visualizer.FitImageOnCanvas(visualizer.texture_originalsize);
+
+                if(useColorInterpolation == true)
+                {
+                    radioButtonInterpolationPoint.Checked = true;
+                }
+
+                visualizer.useTexture = true;
+                canvas.Invalidate();
+            }
         }
     }
 }

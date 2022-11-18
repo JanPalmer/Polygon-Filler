@@ -44,7 +44,7 @@ namespace PRO2_PolygonFiller
             color = _color;
         }
 
-        private Color ToColor()
+        public Color ToColor()
         {
             float rf, gf, bf;
             rf = 255.999f * r;
@@ -63,6 +63,7 @@ namespace PRO2_PolygonFiller
             return Color.FromArgb(finalR, finalG, finalB);
         }
 
+        // Static function
         static public Color ToColor(float R, float G, float B)
         {
             colorvalue color = new colorvalue(R, G, B);
