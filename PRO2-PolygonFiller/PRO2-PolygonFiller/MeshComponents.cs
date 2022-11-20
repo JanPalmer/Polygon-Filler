@@ -15,6 +15,10 @@ namespace PRO2_PolygonFiller
         public float x, y, z;
 
         // Constructors
+        public Vector()
+        {
+            x = 0; y = 0; z = 0;
+        }
         public Vector(float _x, float _y, float _z)
         {
             x = _x;
@@ -77,6 +81,25 @@ namespace PRO2_PolygonFiller
                 u.z * v.x - u.x * v.z,
                 u.x * v.y - u.y * v.x);
         }
+        static public float Distance(Vector u, Vector v)
+        {
+            Vector tmp = u - v;
+            return tmp.Length();
+        }
+
+        static public Vector Multiply3x3MatrixByVector((Vector v1, Vector v2, Vector v3) matrix, Vector u)
+        {
+            Vector vx = new Vector(matrix.v1.x, matrix.v2.x, matrix.v3.x);
+            Vector vy = new Vector(matrix.v1.y, matrix.v2.y, matrix.v3.y);
+            Vector vz = new Vector(matrix.v1.z, matrix.v2.z, matrix.v3.z);
+
+            Vector result = new Vector();
+            result.x = Vector.Dot(vx, u);
+            result.y = Vector.Dot(vy, u);
+            result.z = Vector.Dot(vz, u);
+            return result;
+        }
+
     }
 
     public class Vertex : Vector

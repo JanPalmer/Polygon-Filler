@@ -22,31 +22,56 @@ namespace PRO2_PolygonFiller
         public float angle;
         public Vector viewDir;
 
+        // Spiral constants
+        const float spiralCoef = 30.0f;
+        const float angleStep = (float)Math.PI / 16.0f;
+
+        // Texture variables
         public bool useTexture = false;
         public Bitmap texture_originalsize;
         public Bitmap texture;
 
+        // Normal map variables
         public bool useNormalMap = false;
         public Bitmap normalMap_originalsize;
         public Bitmap normalMap;
-        public NormalVector[,] nvArray;
+        public NormalVector[,] nvArray_model;
+        public NormalVector[,] nvArray_normalMap;
+        public Vertex[,] vArray;
 
-        public bool interpolateColor = true;
+        // Bools for modes
+        public bool useColorInterpolation = true;
         public bool spiralRotation = true;
         private bool spiralRotation_outward = true;
 
-        public ModelVisualizer(Mesh _mesh)
+        public ModelVisualizer(Mesh _mesh, bool _rotateLightsource, bool _useColorInterpolation, bool _useNormalMap)
         {
             if (_mesh == null) throw new Exception();
             model = new Model(_mesh, new colorvalue(1, 0, 0));
             light = new Light();
             viewDir = new Vector(0, 0, 1);
             angle = 0.1f;
+
+            spiralRotation = _rotateLightsource;
+            useColorInterpolation = _useColorInterpolation;
+            useNormalMap = _useNormalMap;
         }
 
+        public void SetNewModel(Mesh _mesh, PictureBox pictureBox)
+        {
+            model = new Model(_mesh, new colorvalue(1, 0, 0));
+            FitModelOnCanvas(pictureBox);
+            if (useTexture == true) FitImageOnCanvas(texture_originalsize);
+            if (useNormalMap == true) FitNormalMapOnCanvas(normalMap_originalsize);
+        }
+        public void SetNewNormalMap(Bitmap bitmap)
+        {
+            normalMap_originalsize = bitmap;
+            FitNormalMapOnCanvas(normalMap_originalsize);
+        }
         public void FitModelOnCanvas(PictureBox pictureBox)
         {
-            float dx = 0, dy = 0, max;
+            float dx, dy, max;
             Vertex n, s, e, w;
             n = s = e = w = model.mesh.vertices[0];
             foreach(Vertex v in model.mesh.vertices)
@@ -66,7 +91,6 @@ namespace PRO2_PolygonFiller
             canvasCenter = new Point(pictureBox.Width / 2, pictureBox.Height / 2);
 
             model.mesh.CastVertices(canvasCenter, scale);
-            light = new Light(new Vertex(3.0f, 0, 2.0f), new colorvalue(1.0f, 1.0f, 1.0f));
             light.position.CastVertex(canvasCenter, scale);
 
             topleft = new Point(w.cast.X, n.cast.Y);
@@ -74,26 +98,13 @@ namespace PRO2_PolygonFiller
             topright = new Point(e.cast.X, n.cast.Y);
             bottomright = new Point(e.cast.X, s.cast.Y);
 
+            vArray = new Vertex[topright.X - topleft.X + 1, bottomleft.Y - topleft.Y + 1];
+            nvArray_model = new NormalVector[topright.X - topleft.X + 1, bottomleft.Y - topleft.Y + 1];
+            foreach (Face f in model.mesh.faces)
+            {
+                Scanline.ScanLine_GetNormalVectorArray(this, f, vArray, nvArray_model);
+            }
         }
-
-        //// Finds furthest cast points
-        //public void FindFurthestPointsOnCast()
-        //{
-        //    Vertex n, s, e, w;
-        //    n = s = e = w = model.mesh.vertices[0];
-        //    foreach (Vertex v in model.mesh.vertices)
-        //    {
-        //        if (v.cast.Y < n.cast.Y) n = v;
-        //        if (v.cast.X > e.cast.X) e = v;
-        //        if (v.cast.X < w.cast.X) w = v;
-        //        if (v.cast.Y > s.cast.Y) s = v;
-        //    }
-
-        //    topleft = new Point(w.cast.X, n.cast.Y);
-        //    bottomleft = new Point(w.cast.X, s.cast.Y);
-        //    topright = new Point(e.cast.X, n.cast.Y);
-        //    bottomright = new Point(e.cast.X, s.cast.Y);
-        //}
 
         // Creates a new model texture from a given Bitmap
         public void FitImageOnCanvas(Bitmap image)
@@ -106,23 +117,60 @@ namespace PRO2_PolygonFiller
 
         public void FitNormalMapOnCanvas(Bitmap mapOriginal)
         {
+            normalMap_originalsize = mapOriginal;
             normalMap = new Bitmap(topright.X - topleft.X + 1, bottomleft.Y - topleft.Y + 1);
             Graphics g = Graphics.FromImage(normalMap);
             g.Clear(Color.White);
-            g.DrawImage(mapOriginal, 0, 0, normalMap.Width, normalMap.Height);
-            nvArray = new NormalVector[normalMap.Width, normalMap.Height];
-
-            foreach(Face f in model.mesh.faces)
-            {
-                Scanline.ScanLine_GetNormalVectorArray(this, f, nvArray);
-            }
+            g.DrawImage(normalMap_originalsize, 0, 0, normalMap.Width, normalMap.Height);
+            nvArray_normalMap = new NormalVector[normalMap.Width, normalMap.Height];
 
             for (int y = 0; y < normalMap.Height; y++)
-                for (int x = 0; x < normalMap.Width; x++)
+                for(int x = 0; x < normalMap.Width; x++)
                 {
-                    nvArray[x, y] = NormalMap_CalculateNormalVector(x, y);
+                    nvArray_normalMap[x, y] = colorvalue.ConvertColorToVector(normalMap.GetPixel(x, y));
+                    nvArray_normalMap[x, y].Normalize();
                 }
+        }
+        public NormalVector GetNormalMapNormalVector_PointInterpolation(Point p)
+        {
+            NormalVector nv_texture = nvArray_normalMap[p.X - topleft.X, p.Y - topleft.Y];
+            NormalVector nv_model = nvArray_model[p.X - topleft.X, p.Y - topleft.Y];
+            NormalVector B, T;
+            Vector unitZ = new Vector(0, 0, 1);
 
+            // Calculate 3x3 transform matrix
+            if(Vector.Distance(nv_model, unitZ) < 0.01f)
+            {
+                B = new NormalVector(0, 1, 0);
+            }
+            else
+            {
+                B = Vector.Cross(nv_model, unitZ);
+            }
+
+            T = Vector.Cross(B, nv_model);
+
+            return Vector.Multiply3x3MatrixByVector((T, B, nv_model), nv_texture);
+        }
+        public NormalVector GetNormalMapNormalVector_ColorInterpolation(Vertex v, NormalVector nv)
+        {
+            NormalVector nv_texture = nvArray_normalMap[v.cast.X - topleft.X, v.cast.Y - topleft.Y];
+            NormalVector B, T;
+            Vector unitZ = new Vector(0, 0, 1);
+
+            // Calculate 3x3 transform matrix
+            if (Vector.Distance(nv, unitZ) < 0.01f)
+            {
+                B = new NormalVector(0, 1, 0);
+            }
+            else
+            {
+                B = Vector.Cross(nv, unitZ);
+            }
+
+            T = Vector.Cross(B, nv);
+
+            return Vector.Multiply3x3MatrixByVector((T, B, nv), nv_texture);
         }
 
         public Color GetVertexShadeColor(Vertex v, NormalVector nv, Vector viewVector, Vertex lightPosition, colorvalue color)
@@ -144,13 +192,6 @@ namespace PRO2_PolygonFiller
             return GetVertexShadeColor(v, nv, viewVector, lightPosition, model.color);
         }
 
-
-
-        //public Color GetFaceShadeColor(Face f, Vector viewVector, Vector lightVector)
-        //{
-        //    return GetVertexShadeColor(f.centerOfMass, f.centerNormalVector, viewVector, lightVector);
-        //}
-
         public void CalculateFaceVerticesColors(Face f, Vector viewVector, Vertex lightPosition)
         {
             f.vertexColors = new colorvalue[f.vertices.Count];
@@ -159,7 +200,7 @@ namespace PRO2_PolygonFiller
             for (int i = 0; i < f.vertices.Count; i++)
             {
                 currVertex = f.GetVertex(i);
-                currNormal = f.GetNormal(i);
+                currNormal = (useNormalMap == true) ? GetNormalMapNormalVector_ColorInterpolation(currVertex, f.GetNormal(i)) : f.GetNormal(i);
 
                 if(useTexture == true)
                 {
@@ -215,13 +256,14 @@ namespace PRO2_PolygonFiller
         }
         public Color GetColorAtPoint(Point p, Face f)
         {
-            if(interpolateColor == true)
+            if(useColorInterpolation == true)
             {
                 return GetColor_ColorInterpolation(p, f);
             }
             else
             {
-                (Vertex v, NormalVector nv) = GetNormalVector_PointInterpolation(p, f);
+                Vertex v = vArray[p.X - topleft.X, p.Y - topleft.Y];
+                NormalVector nv = (useNormalMap == true) ? nvArray_normalMap[p.X - topleft.X, p.Y - topleft.Y] : nvArray_model[p.X - topleft.X, p.Y - topleft.Y];
 
                 if (useTexture == false)
                 {
@@ -257,25 +299,16 @@ namespace PRO2_PolygonFiller
         {
             // Rotates the Light counter-clockwise by an angle
 
-            float px = light.position.cast.X;
-            float py = light.position.cast.Y;
-            
-            float spiralCoef = 30.0f;
-            float angleStep = (float)Math.PI / 16.0f;
-
             if (spiralRotation_outward == true)
             {
                 angle += angleStep;
-                if(angle > 30.0f * (float)Math.PI + angleStep * 4) 
-                    spiralRotation_outward = !spiralRotation_outward;
             }
             else
             {
                 angle -= angleStep;
-                if(angle < 0.0f)
-                    spiralRotation_outward = !spiralRotation_outward;
             }
 
+            if(angle < 0.0f || angle > 30.0f * (float)Math.PI + angleStep * 4)  spiralRotation_outward = !spiralRotation_outward;
 
             float xnew, ynew;
 
@@ -295,6 +328,7 @@ namespace PRO2_PolygonFiller
             light.position.CastVertexBack(canvasCenter, scale);
         }
 
+        // Drawing
         public void DrawEdges(Graphics g, Face f)
         {
             if (f == null || f.vertices == null || f.vertices.Count <= 0) return;
@@ -319,7 +353,7 @@ namespace PRO2_PolygonFiller
 
             foreach (Face f in model.mesh.faces)
             {
-                if(interpolateColor == true) CalculateFaceVerticesColors(f, viewDir, light.position);
+                if(useColorInterpolation == true) CalculateFaceVerticesColors(f, viewDir, light.position);
                 Scanline.ScanLine(this, f, bitmap);
             }
         }

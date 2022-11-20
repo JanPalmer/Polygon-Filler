@@ -69,5 +69,10 @@ namespace PRO2_PolygonFiller
             colorvalue color = new colorvalue(R, G, B);
             return color.ToColor();
         }
+        static public Vector ConvertColorToVector(Color col)
+        {
+            colorvalue colorval = new colorvalue(col);
+            return new Vector(colorval.r, colorval.g, colorval.b);
+        }
     }
 }

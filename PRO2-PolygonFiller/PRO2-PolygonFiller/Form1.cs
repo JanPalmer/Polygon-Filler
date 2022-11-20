@@ -20,10 +20,12 @@ namespace PRO2_PolygonFiller
 
         public Bitmap bitmap;
         public ModelVisualizer visualizer;
-        public string s = "";
+        public string fmt = "F2";
 
         private bool rotateLightsource = true;
-        private bool useColorInterpolation = true;
+        private bool useColorInterpolation = false;
+        private bool useNormalMap = true;
+        private bool showEdgesAndVertices = false;
         //private bool useTexture = false;
 
         public Form1()
@@ -33,22 +35,34 @@ namespace PRO2_PolygonFiller
             bitmap = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
             canvas.Image = bitmap;
             //string path = "..\\..\\..\\Objects\\proj2_sfera.obj";
-            string path = "..\\..\\..\\Objects\\Sphere.obj";
+            string pathOBJ = "..\\..\\..\\Objects\\Sphere.obj";
+            string pathNORMALMAP = "..\\..\\..\\Objects\\proj2_brick_normalmap.png";
             //string path = "..\\..\\..\\Objects\\Pyramid.obj";
 
             //Mesh mesh = MeshCreator.CreateMeshFromObj("D:\\Studia-2022-2023-sem5\\Grafika_Komputerowa_1\\PRO2\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\Pyramid.obj");            
-            Mesh mesh = MeshCreator.CreateMeshFromObj(path);
+            Mesh mesh = MeshCreator.CreateMeshFromObj(pathOBJ);
             //Mesh mesh = MeshCreator.CreateMeshFromObj("C:\\Studia sem5\\Grafika Komputerowa 1\\PRO2\\Polygon-Filler-main\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\proj2_sfera.obj");
             //Mesh mesh = MeshCreator.CreateMeshFromObj("C:\\Studia sem5\\Grafika Komputerowa 1\\PRO2\\Polygon-Filler-main\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\Pyramid.obj");
             //Mesh mesh = MeshCreator.CreateMeshFromObj("C:\\Studia sem5\\Grafika Komputerowa 1\\PRO2\\Polygon-Filler-main\\PRO2-PolygonFiller\\PRO2-PolygonFiller\\Objects\\Rhombus.obj");
 
+            Bitmap normalMapBitmap = new Bitmap(pathNORMALMAP);
+
             if (mesh == null) ActiveForm.Close();
 
-            visualizer = new ModelVisualizer(mesh);
+            visualizer = new ModelVisualizer(mesh, rotateLightsource, useColorInterpolation, useNormalMap);
             visualizer.FitModelOnCanvas(canvas);
-
+            visualizer.light.SetHeight((float)sliderLightHeight.Value / 100.0f);
+            visualizer.model.kd = (float)sliderDiffuse.Value / 100.0f;
+            visualizer.model.ks = (float)sliderSpecular.Value / 100.0f;
+            visualizer.model.m = sliderShininess.Value;
+            labelLightHeight.Text = visualizer.light.position.z.ToString(fmt);
+            visualizer.SetNewNormalMap(normalMapBitmap);
 
             visualizer.FillFrame(canvas, bitmap);
+
+            checkBoxLightMovement.Checked = !rotateLightsource;
+            checkBoxNormalMap.Checked = useNormalMap;
+            checkBoxPaintEdges.Checked = showEdgesAndVertices;
 
             buttonShowColor.BackColor = visualizer.model.color.ToColor();
             //visualizer.DrawFrame(Graphics.FromImage(bitmap), bitmap);
@@ -59,13 +73,15 @@ namespace PRO2_PolygonFiller
 
         private void canvas_Paint(object sender, PaintEventArgs e)
         {
-            visualizer.DrawPolygon(e.Graphics);
+            if (showEdgesAndVertices) visualizer.DrawPolygon(e.Graphics);
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
+            if (visualizer == null) return;
             visualizer.FitModelOnCanvas(canvas);
             if(visualizer.useTexture == true) visualizer.FitImageOnCanvas(visualizer.texture_originalsize);
+            if (visualizer.useNormalMap == true) visualizer.FitNormalMapOnCanvas(visualizer.normalMap_originalsize);
             visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
         }
@@ -106,20 +122,19 @@ namespace PRO2_PolygonFiller
 
         private void sliderLightHeight_ValueChanged(object sender, EventArgs e)
         {
-            visualizer.light.SetHeight((float)sliderLightHeight.Value / 100.0f);
+            float height = (float)sliderLightHeight.Value / 100.0f;
+            visualizer.light.SetHeight(height);
+            labelLightHeight.Text = visualizer.light.position.z.ToString(fmt);
             visualizer.FillFrame(canvas, bitmap);
             canvas.Invalidate();
-        }
-
-        private void radioButton_LightSpiral_CheckedChanged(object sender, EventArgs e)
-        {
-            rotateLightsource = !rotateLightsource;
         }
 
         private void radioButtonInterpolationColor_CheckedChanged(object sender, EventArgs e)
         {
             useColorInterpolation = !useColorInterpolation;
-            visualizer.interpolateColor = useColorInterpolation;
+            visualizer.useColorInterpolation = useColorInterpolation;
+            visualizer.FillFrame(canvas, bitmap);
+            canvas.Invalidate();
         }
 
         private void buttonSetColor_Click(object sender, EventArgs e)
@@ -136,13 +151,15 @@ namespace PRO2_PolygonFiller
                 buttonShowColor.BackColor = colorDialog.Color;
                 visualizer.model.color = new colorvalue(colorDialog.Color);
             }
+            visualizer.FillFrame(canvas, bitmap);
+            canvas.Invalidate();
         }
 
         private void buttonTexture_MouseClick(object sender, MouseEventArgs e)
         {
             //useTexture = true;
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF";
+            fileDialog.Filter = "Image Files(*.PNG;*.BMP;*.JPG;*.GIF)|*.PNG;*.BMP;*.JPG;*.GIF";
             if(fileDialog.ShowDialog() == DialogResult.OK)
             {
                 buttonShowColor.BackColor = SystemColors.Control;
@@ -159,6 +176,48 @@ namespace PRO2_PolygonFiller
                 visualizer.useTexture = true;
                 canvas.Invalidate();
             }
+        }
+
+        private void buttonNewModel_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "3D meshes|*.OBJ";
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                Mesh mesh = MeshCreator.CreateMeshFromObj(fileDialog.FileName);
+                visualizer.SetNewModel(mesh, canvas);
+                canvas.Invalidate();
+            }
+        }
+
+        private void buttonNormalMap_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "Normal Maps|*.JPG;*.PNG";
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                Bitmap normalmapBitmap = new Bitmap(fileDialog.FileName);
+                visualizer.SetNewNormalMap(normalmapBitmap);
+                canvas.Invalidate();
+            }
+        }
+
+        private void checkBoxNormalMap_CheckedChanged(object sender, EventArgs e)
+        {
+            useNormalMap = !useNormalMap;
+            visualizer.useNormalMap = useNormalMap;
+        }
+
+        private void checkBoxPaintEdges_CheckedChanged(object sender, EventArgs e)
+        {
+            showEdgesAndVertices = !showEdgesAndVertices;
+            canvas.Invalidate();
+        }
+
+        private void checkBoxLightMovement_CheckedChanged(object sender, EventArgs e)
+        {
+            rotateLightsource = !rotateLightsource;
+            visualizer.spiralRotation = rotateLightsource;
         }
     }
 }

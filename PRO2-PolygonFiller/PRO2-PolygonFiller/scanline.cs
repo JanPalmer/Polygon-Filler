@@ -148,7 +148,7 @@ namespace PRO2_PolygonFiller
                     int startx = Math.Max((int)aet[k].x, 0);
                     int endx = (int)aet[k + 1].x;
                     Point tmp_p;
-                    while (startx <= endx)
+                    while (startx < endx)
                     {
                         tmp_p = new Point(startx, y);
                         bitmap.SetPixel(startx, y, vis.GetColorAtPoint(tmp_p, f));
@@ -161,7 +161,7 @@ namespace PRO2_PolygonFiller
             }
         }
 
-        static public void ScanLine_GetNormalVectorArray(ModelVisualizer vis, Face f, NormalVector[,] nvArrayToFill)
+        static public void ScanLine_GetNormalVectorArray(ModelVisualizer vis, Face f, Vector[,] vArrayToFill, NormalVector[,] nvArrayToFill)
         {
             vp[] P = new vp[f.vertices.Count];
             for (int k = 0; k < f.vertices.Count; k++)
@@ -221,12 +221,12 @@ namespace PRO2_PolygonFiller
                 {
                     int startx = Math.Max((int)aet[k].x, 0);
                     int endx = (int)aet[k + 1].x;
-                    Point tmp_p;
+                    Point tmp_p;                    
                     while (startx <= endx)
                     {
                         tmp_p = new Point(startx, y);
-                        Vertex dummyvertex;
-                        (dummyvertex, nvArrayToFill[startx, y]) = vis.GetNormalVector_PointInterpolation(tmp_p, f);
+                        //Vertex dummyvertex;
+                        (vArrayToFill[startx - vis.topleft.X, y - vis.topleft.Y], nvArrayToFill[startx - vis.topleft.X, y - vis.topleft.Y]) = vis.GetNormalVector_PointInterpolation(tmp_p, f);
                         startx++;
                     }
                 }
