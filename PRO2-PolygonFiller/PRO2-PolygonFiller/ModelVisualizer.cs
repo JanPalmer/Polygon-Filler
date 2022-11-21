@@ -44,7 +44,7 @@ namespace PRO2_PolygonFiller
         public bool spiralRotation = true;
         private bool spiralRotation_outward = true;
 
-        public ModelVisualizer(Mesh _mesh, bool _rotateLightsource, bool _useColorInterpolation, bool _useNormalMap)
+        public ModelVisualizer(Mesh _mesh, bool _rotateLightsource = false, bool _useColorInterpolation = true, bool _useNormalMap = false)
         {
             if (_mesh == null) throw new Exception();
             model = new Model(_mesh, new colorvalue(1, 0, 0));
@@ -106,7 +106,7 @@ namespace PRO2_PolygonFiller
             }
         }
 
-        // Creates a new model texture from a given Bitmap
+        // Fit the model texture from a given Bitmap
         public void FitImageOnCanvas(Bitmap image)
         {
             texture = new Bitmap(topright.X - topleft.X + 1, bottomleft.Y - topleft.Y + 1);
@@ -232,7 +232,7 @@ namespace PRO2_PolygonFiller
         }
         public (Vertex, NormalVector) GetNormalVector_PointInterpolation(Point p, Face f)
         {
-            Vertex v = new Vertex(f, p);
+            Vertex v = new Vertex(p);
             v.CastVertexBack(canvasCenter, scale);
 
             Vertex v1 = f.GetVertex(0), v2 = f.GetVertex(1), v3 = f.GetVertex(2);
@@ -254,6 +254,7 @@ namespace PRO2_PolygonFiller
             vn_new.Normalize();
             return (v, vn_new);
         }
+        // Main function referenced in ScanLine to get a pixel's Color. Its value depends on current settings
         public Color GetColorAtPoint(Point p, Face f)
         {
             if(useColorInterpolation == true)
@@ -297,7 +298,7 @@ namespace PRO2_PolygonFiller
         //}
         public void RotateLight()
         {
-            // Rotates the Light counter-clockwise by an angle
+            // Rotates the Light in a unwinding and winding spiral
 
             if (spiralRotation_outward == true)
             {
@@ -366,16 +367,5 @@ namespace PRO2_PolygonFiller
                 DrawEdges(g, f);
             }
         }
-
-        //public void DrawFrame(Graphics g, Bitmap bitmap)
-        //{
-        //    g.Clear(Color.White);
-        //    DrawVertices(g, model.mesh);
-        //    foreach(Face f in model.mesh.faces)
-        //    {
-        //        DrawEdges(g, f);
-        //        ScanLineWithShading(f, bitmap, light);
-        //    }
-        //}
     }
 }

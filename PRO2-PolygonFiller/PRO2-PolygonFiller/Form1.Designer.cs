@@ -90,11 +90,12 @@ namespace PRO2_PolygonFiller
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 170F));
             this.tableLayoutPanel1.Controls.Add(this.canvas, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 1, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(676, 661);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(677, 661);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // canvas
@@ -103,7 +104,7 @@ namespace PRO2_PolygonFiller
             this.canvas.Dock = System.Windows.Forms.DockStyle.Fill;
             this.canvas.Location = new System.Drawing.Point(3, 3);
             this.canvas.Name = "canvas";
-            this.canvas.Size = new System.Drawing.Size(500, 655);
+            this.canvas.Size = new System.Drawing.Size(501, 655);
             this.canvas.TabIndex = 0;
             this.canvas.TabStop = false;
             this.canvas.Paint += new System.Windows.Forms.PaintEventHandler(this.canvas_Paint);
@@ -123,7 +124,7 @@ namespace PRO2_PolygonFiller
             this.tableLayoutPanel2.Controls.Add(this.buttonNewModel, 0, 9);
             this.tableLayoutPanel2.Controls.Add(this.checkBoxPaintEdges, 0, 8);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(509, 3);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(510, 3);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 10;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 69F));
@@ -144,6 +145,7 @@ namespace PRO2_PolygonFiller
             this.groupBoxDiffuse.Controls.Add(this.label2);
             this.groupBoxDiffuse.Controls.Add(this.label1);
             this.groupBoxDiffuse.Controls.Add(this.sliderDiffuse);
+            this.groupBoxDiffuse.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxDiffuse.Location = new System.Drawing.Point(3, 3);
             this.groupBoxDiffuse.Name = "groupBoxDiffuse";
             this.groupBoxDiffuse.Size = new System.Drawing.Size(158, 63);
@@ -187,6 +189,7 @@ namespace PRO2_PolygonFiller
             this.groupBoxSpecular.Controls.Add(this.label4);
             this.groupBoxSpecular.Controls.Add(this.label3);
             this.groupBoxSpecular.Controls.Add(this.sliderSpecular);
+            this.groupBoxSpecular.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxSpecular.Location = new System.Drawing.Point(3, 72);
             this.groupBoxSpecular.Name = "groupBoxSpecular";
             this.groupBoxSpecular.Size = new System.Drawing.Size(158, 63);
@@ -230,6 +233,7 @@ namespace PRO2_PolygonFiller
             this.groupBoxShininess.Controls.Add(this.label6);
             this.groupBoxShininess.Controls.Add(this.label5);
             this.groupBoxShininess.Controls.Add(this.sliderShininess);
+            this.groupBoxShininess.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxShininess.Location = new System.Drawing.Point(3, 141);
             this.groupBoxShininess.Name = "groupBoxShininess";
             this.groupBoxShininess.Size = new System.Drawing.Size(158, 63);
@@ -275,6 +279,7 @@ namespace PRO2_PolygonFiller
             this.groupBoxLightHeight.Controls.Add(this.label8);
             this.groupBoxLightHeight.Controls.Add(this.label7);
             this.groupBoxLightHeight.Controls.Add(this.sliderLightHeight);
+            this.groupBoxLightHeight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxLightHeight.Location = new System.Drawing.Point(3, 210);
             this.groupBoxLightHeight.Name = "groupBoxLightHeight";
             this.groupBoxLightHeight.Size = new System.Drawing.Size(158, 63);
@@ -297,9 +302,9 @@ namespace PRO2_PolygonFiller
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(6, 45);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(22, 15);
+            this.label8.Size = new System.Drawing.Size(28, 15);
             this.label8.TabIndex = 6;
-            this.label8.Text = "0.1";
+            this.label8.Text = "0.01";
             // 
             // label7
             // 
@@ -326,6 +331,7 @@ namespace PRO2_PolygonFiller
             // groupBoxLightRotation
             // 
             this.groupBoxLightRotation.Controls.Add(this.checkBoxLightMovement);
+            this.groupBoxLightRotation.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxLightRotation.Location = new System.Drawing.Point(3, 279);
             this.groupBoxLightRotation.Name = "groupBoxLightRotation";
             this.groupBoxLightRotation.Size = new System.Drawing.Size(158, 42);
@@ -351,6 +357,7 @@ namespace PRO2_PolygonFiller
             this.groupBoxTexture.Controls.Add(this.buttonTexture);
             this.groupBoxTexture.Controls.Add(this.buttonSetColor);
             this.groupBoxTexture.Controls.Add(this.buttonShowColor);
+            this.groupBoxTexture.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxTexture.Location = new System.Drawing.Point(3, 404);
             this.groupBoxTexture.Name = "groupBoxTexture";
             this.groupBoxTexture.Size = new System.Drawing.Size(158, 97);
@@ -401,6 +408,7 @@ namespace PRO2_PolygonFiller
             // 
             this.groupBoxInterpolationType.Controls.Add(this.radioButtonInterpolationPoint);
             this.groupBoxInterpolationType.Controls.Add(this.radioButtonInterpolationColor);
+            this.groupBoxInterpolationType.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxInterpolationType.Location = new System.Drawing.Point(3, 327);
             this.groupBoxInterpolationType.Name = "groupBoxInterpolationType";
             this.groupBoxInterpolationType.Size = new System.Drawing.Size(158, 71);
@@ -435,9 +443,10 @@ namespace PRO2_PolygonFiller
             // 
             this.groupBox1.Controls.Add(this.checkBoxNormalMap);
             this.groupBox1.Controls.Add(this.buttonNormalMap);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(3, 507);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(158, 71);
+            this.groupBox1.Size = new System.Drawing.Size(158, 72);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Normal Maps";
@@ -467,6 +476,7 @@ namespace PRO2_PolygonFiller
             // 
             // buttonNewModel
             // 
+            this.buttonNewModel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.buttonNewModel.Location = new System.Drawing.Point(3, 611);
             this.buttonNewModel.Name = "buttonNewModel";
             this.buttonNewModel.Size = new System.Drawing.Size(158, 41);
@@ -478,9 +488,10 @@ namespace PRO2_PolygonFiller
             // checkBoxPaintEdges
             // 
             this.checkBoxPaintEdges.AutoSize = true;
-            this.checkBoxPaintEdges.Location = new System.Drawing.Point(3, 585);
+            this.checkBoxPaintEdges.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.checkBoxPaintEdges.Location = new System.Drawing.Point(3, 586);
             this.checkBoxPaintEdges.Name = "checkBoxPaintEdges";
-            this.checkBoxPaintEdges.Size = new System.Drawing.Size(155, 19);
+            this.checkBoxPaintEdges.Size = new System.Drawing.Size(158, 19);
             this.checkBoxPaintEdges.TabIndex = 9;
             this.checkBoxPaintEdges.Text = "Show Edges and Vertices";
             this.checkBoxPaintEdges.UseVisualStyleBackColor = true;

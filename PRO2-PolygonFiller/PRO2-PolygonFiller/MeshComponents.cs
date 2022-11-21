@@ -7,6 +7,9 @@ using System.Globalization;
 
 namespace PRO2_PolygonFiller
 {
+    // This 'using' is made for purely philosophical reasons, to differenciate
+    // direction vectors like the direction from a lightsource to a surface
+    // from a surface's slope
     using NormalVector = Vector;
 
     public class Vector
@@ -86,7 +89,6 @@ namespace PRO2_PolygonFiller
             Vector tmp = u - v;
             return tmp.Length();
         }
-
         static public Vector Multiply3x3MatrixByVector((Vector v1, Vector v2, Vector v3) matrix, Vector u)
         {
             Vector vx = new Vector(matrix.v1.x, matrix.v2.x, matrix.v3.x);
@@ -104,14 +106,13 @@ namespace PRO2_PolygonFiller
 
     public class Vertex : Vector
     {
-        public Point cast;
+        public Point cast; // Cast exists as a PictureBox-context side of a Vertex
         public colorvalue color;
         public Vertex(float _x, float _y, float _z) : base(_x, _y, _z) { }
 
-        public Vertex(Face f, Point p) : base(0, 0, 0)
+        public Vertex(Point p) : base(0, 0, 0)
         {
             cast = p;
-
         }
 
         public void CastVertex(Point canvasCenter, float scale)
@@ -125,34 +126,10 @@ namespace PRO2_PolygonFiller
         }
     }
 
-    //public class NormalVector : Vector
-    //{
-    //    public NormalVector(float _x, float _y, float _z) : base(_x, _y, _z) { }
-    //    // To be written, Normalizes a vector to be of length 1
-
-    //    static public NormalVector operator +(NormalVector a, NormalVector b)
-    //    {
-    //        return new NormalVector(a.x + b.x, a.y + b.y, a.z + b.z);
-    //    }
-    //    static public NormalVector operator *(NormalVector v, float t)
-    //    {
-    //        return new NormalVector(v.x * t, v.y * t, v.z * t);
-    //    }
-    //    public void Normalize()
-    //    {
-    //        float len = Length();
-    //        x /= len; y /= len; z /= len;
-    //    }
-    //}
-
     public class Face
     {
         // v - index of a Vertex in its Face's parent (Mesh), nv - index of a Normal Vector in its Face's parent (Mesh)
-        // We assume that if a vertex has no given normal vector, its normal vector is (0, 0, 0)
-        // To Get 
         public List<(int v, int nv)> vertices;
-        //public Vertex centerOfMass;
-        //public NormalVector centerNormalVector;
         public Mesh parent;
         public colorvalue[] vertexColors;
 
@@ -161,10 +138,12 @@ namespace PRO2_PolygonFiller
             vertices = new List<(int, int)>();
         }
 
+        // Getter for a Vertex Object which the Face references
         public Vertex GetVertex(int i)
         {
             return parent.vertices[vertices[i].v];
         }
+        // Getter for a NormalVector Object which the Face references
         public NormalVector GetNormal(int i)
         {
             return parent.normalVectors[vertices[i].nv];
@@ -177,45 +156,6 @@ namespace PRO2_PolygonFiller
         {
             vertices.Add((v, nv));
         }
-
-        //public void Recalculate()
-        //{
-        //    CalculateCenterOfMass();
-        //    NormalizeNormalVectors();
-        //}
-
-        //private void CalculateCenterOfMass()
-        //{
-        //    float x = 0f, y = 0f, z = 0f;
-        //    foreach((int v, int? nv) v in vertices)
-        //    {
-        //        x += parent.vertices[v.v].x;
-        //        y += parent.vertices[v.v].y;
-        //        z += parent.vertices[v.v].z;
-        //    }
-
-        //    x /= vertices.Count;
-        //    y /= vertices.Count;
-        //    z /= vertices.Count;
-
-        //    centerOfMass = new Vertex(x, y, z);
-        //}
-        //private void NormalizeNormalVectors()
-        //{
-        //    centerNormalVector = new Vector(0, 0, 0);
-        //    foreach((int v, int? nv) v in vertices)
-        //    {
-        //        if (v.nv.HasValue == false) continue;
-
-        //        // Normalize normal vector
-        //        parent.normalVectors[v.nv.Value].Normalize();
-
-        //        // interpolate a face's center of mass normal vector
-        //        Vector fromVtoCenter = new Vector(parent.vertices[v.v], centerOfMass);
-        //        centerNormalVector += fromVtoCenter.Length() * parent.normalVectors[v.nv.Value];
-        //    }
-        //    centerNormalVector.Normalize();
-        //}
     }
 
     public class Mesh
@@ -281,27 +221,22 @@ namespace PRO2_PolygonFiller
                                 //case 1:
                                 //    vert = int.Parse(indexString[0], ci) - 1;
                                 //    tmpFace.AddVertex(vert);
-                                //    //tmpFace.vertices.Add((vert, null));
                                 //    break;
                                 case 3:
                                     vert = int.Parse(indexString[0], ci) - 1;
                                     norm = int.Parse(indexString[2], ci) - 1;
                                     tmpFace.AddVertex(vert, norm);
-                                    //tmpFace.vertices.Add((vert, norm));
                                     break;
                                 default:
                                     break;
                             }
                         }
-
-                        //tmpFace.Recalculate();
                         mesh.faces.Add(tmpFace);
                         break;
                     default:
                         break;
                 }
             }
-
             return mesh;
         }
     }
