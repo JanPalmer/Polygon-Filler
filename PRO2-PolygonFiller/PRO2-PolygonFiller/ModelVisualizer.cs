@@ -109,6 +109,7 @@ namespace PRO2_PolygonFiller
         // Fit the model texture from a given Bitmap
         public void FitImageOnCanvas(Bitmap image)
         {
+            texture_originalsize = image;
             texture = new Bitmap(topright.X - topleft.X + 1, bottomleft.Y - topleft.Y + 1);
             Graphics g = Graphics.FromImage(texture);
             g.Clear(Color.White);

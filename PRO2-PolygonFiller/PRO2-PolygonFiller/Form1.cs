@@ -86,7 +86,7 @@ namespace PRO2_PolygonFiller
             checkBoxNormalMap.Checked = useNormalMap;
             checkBoxPaintEdges.Checked = showEdgesAndVertices;
 
-            buttonShowColor.BackColor = visualizer.model.color.ToColor();
+            if(_texture == null) buttonShowColor.BackColor = visualizer.model.color.ToColor();
 
             if(timerAnimation == null) timerAnimation = new Timer();
             if (timerAnimation.Enabled) timerAnimation.Stop();
